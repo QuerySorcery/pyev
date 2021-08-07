@@ -377,7 +377,7 @@ class Visualizer:
 
     def generate_lines(self):
         self.string_lines = [
-            "○ Total Cost: %s" % humanize.intcomma(self.explain["Total Cost"]),
+            "○ Total Cost: %s" % humanize.intcomma(int(self.explain["Total Cost"])),
             "○ Planning Time: %s"
             % self.duration_to_string(self.explain["Planning Time"]),
             "○ Execution Time: %s"
