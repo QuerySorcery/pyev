@@ -154,7 +154,7 @@ example output:
           │ ○ Rows: 1
           │   on public.customers
           │   using index_customers_on_number
-          │   filter ((customers.deleted_at IS NULL) AND (customers.provider_id = 129155)) [-2 rows]
+          │   filter ((customers.deleted_at IS NULL) AND (customers.provider_id = 12345)) [-2 rows]
           ⌡► customers.number + customers.id +
              customers.blocked + customers.accepts_notifications
       │
