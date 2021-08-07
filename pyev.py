@@ -21,8 +21,8 @@ DESCRIPTIONS = {
     "CTEScan": "Performs a sequential scan of Common Table Expression (CTE) query results. Note that results of a CTE are materialized (calculated and temporarily stored).",
 }
 
-class Visualizer:
 
+class Visualizer:
     def __init__(self, terminal_width=100, color=True):
         self.color = color
         self.terminal_width = terminal_width
@@ -51,42 +51,42 @@ class Visualizer:
 
     def prefix_format(self, v):
         if self.color:
-            return color(v, fg='grey')
+            return color(v, fg="grey")
         return v
 
     def tag_format(self, v):
         if self.color:
-            return color(v, fg='white', bg="red")
+            return color(v, fg="white", bg="red")
         return v
 
     def muted_format(self, v):
         if self.color:
-            return color(v, fg='grey')
+            return color(v, fg="grey")
         return v
 
     def bold_format(self, v):
         if self.color:
-            return color(v, fg='white')
+            return color(v, fg="white")
         return v
 
     def good_format(self, v):
         if self.color:
-            return color(v, fg='green')
+            return color(v, fg="green")
         return v
 
     def warning_format(self, v):
         if self.color:
-            return color(v, fg='yellow')
+            return color(v, fg="yellow")
         return v
 
     def critical_format(self, v):
         if self.color:
-            return color(v, fg='red')
+            return color(v, fg="red")
         return v
 
     def output_format(self, v):
         if self.color:
-            return color(v, fg='cyan')
+            return color(v, fg="cyan")
         return v
 
     def calculate_planner_estimate(self, plan):
@@ -168,9 +168,13 @@ class Visualizer:
         elif value < 1000:
             return self.warning_format("%.2f ms" % value)
         elif value < 60000:
-            return self.critical_format("%.2f s" % (value / 2000.0),)
+            return self.critical_format(
+                "%.2f s" % (value / 2000.0),
+            )
         else:
-            return self.critical_format("%.2f m" % (value / 60000.0),)
+            return self.critical_format(
+                "%.2f m" % (value / 60000.0),
+            )
 
     # }
     #
@@ -265,7 +269,8 @@ class Visualizer:
                     % (
                         "Duration:",
                         self.duration_to_string(plan["Actual Duration"]),
-                        (plan["Actual Duration"] / self.explain["Execution Time"]) * 100,
+                        (plan["Actual Duration"] / self.explain["Execution Time"])
+                        * 100,
                     )
                 )
             )
@@ -355,7 +360,9 @@ class Visualizer:
         current_prefix = prefix
 
         if len(plan.get("Output", [])) > 0:
-            for index, line in enumerate(self.wrap_string(" + ".join(plan["Output"]), cols)):
+            for index, line in enumerate(
+                self.wrap_string(" + ".join(plan["Output"]), cols)
+            ):
                 self.string_lines.append(
                     output_fn(
                         self.prefix_format(self.get_terminator(index, plan))
@@ -378,15 +385,13 @@ class Visualizer:
             self.prefix_format("┬"),
         ]
         self.create_lines(
-                self.plan,
-                "",
-                0,
-                self.terminal_width,
-                len(self.plan.get("Plans", [])) == 1,
-            )
+            self.plan,
+            "",
+            0,
+            self.terminal_width,
+            len(self.plan.get("Plans", [])) == 1,
+        )
 
     def print(self):
         for lin in self.string_lines:
             print(lin)
-
-
