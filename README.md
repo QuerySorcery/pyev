@@ -171,3 +171,4 @@ example output:
       │ ⌡► c1.id + c1.customer_id + c1.provider_id + c1.unpaid_amount +
       │    c1.created_at + c1.updated_at
 ```
+![example](pyev.png "color")
