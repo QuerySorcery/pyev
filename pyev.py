@@ -242,15 +242,13 @@ class Visualizer:
         return "%s%s" % (self.prefix_format(current_prefix), string)
 
     def create_lines(self, plan, prefix, depth, width, last_child):
-        is_last = len(plan.get("Plans", [])) < 1 or last_child
-
         current_prefix = prefix
         self.string_lines.append(
             self.output_fn(current_prefix, self.prefix_format("│"))
         )
 
         joint = "├"
-        if is_last:
+        if last_child:
             joint = "└"
         #
         self.string_lines.append(
@@ -266,7 +264,7 @@ class Visualizer:
             )
         )
         #
-        if is_last:
+        if last_child:
             prefix += "  "
         else:
             prefix += "│ "
