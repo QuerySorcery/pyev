@@ -57,8 +57,8 @@ example output:
     ├►  customers.number
     │
     └─⌠ Nested Loop 
-      │ Merges two record sets by looping through every record in the first set and trying to find a match in
-      │ the second set. All matching records are returned.
+      │ Merges two record sets by looping through every record in the first set and trying
+      │ to find a match in the second set. All matching records are returned.
       │ ○ Duration: 730.10 ms (20%)
       │ ○ Cost: 0 (0%)
       │ ○ Rows: 1
@@ -66,19 +66,19 @@ example output:
       ├►  customers.number
       │
       ├─⌠ Nested Loop bad estimate
-      │ │ Merges two record sets by looping through every record in the first set and trying to find a match
-      │ │ in the second set. All matching records are returned.
+      │ │ Merges two record sets by looping through every record in the first set and
+      │ │ trying to find a match in the second set. All matching records are returned.
       │ │ ○ Duration: 0.69 s (37%)
       │ │ ○ Cost: 48 (6%)
       │ │ ○ Rows: 785
       │ │   Inner join
       │ │   rows Underestimated by 785.00x
-      │ ├►  customers.number + customers.id + customers.blocked + customers.accepts_marketing_notifications +
-      │ │  m3.id
+      │ ├►  customers.number + customers.id + customers.blocked +
+      │ │  customers.accepts_marketing_notifications + m3.id
       │ │
       │ ├─⌠ Nested Loop bad estimate
-      │ │ │ Merges two record sets by looping through every record in the first set and trying to find a match
-      │ │ │ in the second set. All matching records are returned.
+      │ │ │ Merges two record sets by looping through every record in the first set and
+      │ │ │ trying to find a match in the second set. All matching records are returned.
       │ │ │ ○ Duration: 3.74 ms (0%)
       │ │ │ ○ Cost: 7 (1%)
       │ │ │ ○ Rows: 760
@@ -87,17 +87,19 @@ example output:
       │ │ ├►  m2.recipient_phone + (unnest('{12345000000}'::text[])) + m3.id
       │ │ │
       │ │ ├─⌠ Nested Loop 
-      │ │ │ │ Merges two record sets by looping through every record in the first set and trying to find a
-      │ │ │ │ match in the second set. All matching records are returned.
+      │ │ │ │ Merges two record sets by looping through every record in the first set and
+      │ │ │ │ trying to find a match in the second set. All matching records are returned.
       │ │ │ │ ○ Duration: 0.80 s (43%)
       │ │ │ │ ○ Cost: 808 (100%)
       │ │ │ │ ○ Rows: 760
       │ │ │ │   Inner join
       │ │ │ │   rows Underestimated by 19.00x
-      │ │ │ ├►  m2.recipient_phone + m2.marketing_campaign_settings_id + (unnest('{12345000000}'::text[]))
+      │ │ │ ├►  m2.recipient_phone + m2.marketing_campaign_settings_id +
+      │ │ │ │  (unnest('{12345000000}'::text[]))
       │ │ │ │
       │ │ │ ├─⌠ Aggregate [Hashed] largest
-      │ │ │ │ │ Groups records together based on a GROUP BY or aggregate function (e.g. sum()).
+      │ │ │ │ │ Groups records together based on a GROUP BY or aggregate function (e.g.
+      │ │ │ │ │ sum()).
       │ │ │ │ │ ○ Duration: 1.11 ms (0%)
       │ │ │ │ │ ○ Cost: 4 (1%)
       │ │ │ │ │ ○ Rows: 1,000
@@ -105,9 +107,9 @@ example output:
       │ │ │ │ ├►  (unnest('{12345000000}'::text[]))
       │ │ │ │ │
       │ │ │ │ └─⌠ ProjectSet largest
-      │ │ │ │   │ ProjectSet appears when the SELECT or ORDER BY clause of the query.  They basically just
-      │ │ │ │   │ execute the set-returning function(s) for each tuple until none of the functions return any
-      │ │ │ │   │ more records.
+      │ │ │ │   │ ProjectSet appears when the SELECT or ORDER BY clause of the query.
+      │ │ │ │   │ They basically just execute the set-returning function(s) for each tuple
+      │ │ │ │   │ until none of the functions return any more records.
       │ │ │ │   │ ○ Duration: <1 ms (0%)
       │ │ │ │   │ ○ Cost: 1 (0%)
       │ │ │ │   │ ○ Rows: 1,000
@@ -120,8 +122,9 @@ example output:
       │ │ │ │     │ ○ Rows: 1
       │ │ │ │
       │ │ │ └─⌠ Index Scan [Forward] slowest
-      │ │ │   │ Finds relevant records based on an Index. Index Scans perform 2 read operations: one to read
-      │ │ │   │ the index and another to read the actual value from the table.
+      │ │ │   │ Finds relevant records based on an Index. Index Scans perform 2 read
+      │ │ │   │ operations: one to read the index and another to read the actual value
+      │ │ │   │ from the table.
       │ │ │   │ ○ Duration: 0.80 s (43%)
       │ │ │   │ ○ Cost: 4 (1%)
       │ │ │   │ ○ Rows: 1
@@ -131,38 +134,42 @@ example output:
       │ │ │   ⌡► m2.recipient_phone + m2.marketing_campaign_settings_id
       │ │ │
       │ │ └─⌠ Index Scan [Forward] 
-      │ │   │ Finds relevant records based on an Index. Index Scans perform 2 read operations: one to read the
-      │ │   │ index and another to read the actual value from the table.
+      │ │   │ Finds relevant records based on an Index. Index Scans perform 2 read
+      │ │   │ operations: one to read the index and another to read the actual value from
+      │ │   │ the table.
       │ │   │ ○ Duration: 3.04 ms (0%)
       │ │   │ ○ Cost: 0 (0%)
       │ │   │ ○ Rows: 1
       │ │   │   on public.marketing_campaign_settings
       │ │   │   using marketing_campaign_settings_pkey
       │ │   │   filter (m3.campaign_category = 4) [-0 rows]
-      │ │   ⌡► m3.id + m3.provider_id + m3.marketing_campaign_id + m3.campaign_category + m3.current + m3.value
-      │ │      + m3.discount_type + m3."limit" + m3.valid_for + m3.created_at + m3.updated_at + m3.all_services
-      │ │      + m3.discount_id
+      │ │   ⌡► m3.id + m3.provider_id + m3.marketing_campaign_id + m3.campaign_category +
+      │ │      m3.current + m3.value + m3.discount_type + m3."limit" + m3.valid_for +
+      │ │      m3.created_at + m3.updated_at + m3.all_services + m3.discount_id
       │ │
       │ └─⌠ Index Scan [Forward] 
-      │   │ Finds relevant records based on an Index. Index Scans perform 2 read operations: one to read the
-      │   │ index and another to read the actual value from the table.
+      │   │ Finds relevant records based on an Index. Index Scans perform 2 read
+      │   │ operations: one to read the index and another to read the actual value from
+      │   │ the table.
       │   │ ○ Duration: 0.69 s (37%)
       │   │ ○ Cost: 8 (1%)
       │   │ ○ Rows: 1
       │   │   on public.customers
       │   │   using index_customers_on_number
       │   │   filter ((customers.deleted_at IS NULL) AND (customers.provider_id = 12345)) [-2 rows]
-      │   ⌡► customers.number + customers.id + customers.blocked + customers.accepts_notifications
+      │   ⌡► customers.number + customers.id + customers.blocked +
+      │      customers.accepts_notifications
       │
       └─⌠ Index Scan [Forward] costliest
-        │ Finds relevant records based on an Index. Index Scans perform 2 read operations: one to read the
-        │ index and another to read the actual value from the table.
+        │ Finds relevant records based on an Index. Index Scans perform 2 read operations:
+        │ one to read the index and another to read the actual value from the table.
         │ ○ Duration: 730.05 ms (20%)
         │ ○ Cost: 2 (0%)
         │ ○ Rows: 0
         │   on public.customer_payments
         │   using index_customer_payments_id
         │   filter (c1.unpaid_amount > '0'::numeric) [-1 rows]
-        ⌡► c1.id + c1.customer_id + c1.provider_id + c1.unpaid_amount + c1.created_at + c1.updated_at
+        ⌡► c1.id + c1.customer_id + c1.provider_id + c1.unpaid_amount + c1.created_at +
+           c1.updated_at
 ```
 ![example](pyev.png "color")
