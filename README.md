@@ -1,12 +1,15 @@
 This is a port of [gocmdpev](https://github.com/simon-engledew/gocmdpev) 
 
 # Usage:
-  prefix your query with `EXPLAIN (ANALYZE, COSTS, VERBOSE, BUFFERS, FORMAT JSON)`
+ 
+Prefix your query with `EXPLAIN (ANALYZE, COSTS, VERBOSE, BUFFERS, FORMAT JSON)`
 
-this will return you a json string that can be passed to the visualizer
-visualiser takes 2 params:
-terminal_width = default 100
-color_mode_on = default True
+When executed it will return a json string that can be passed to the visualizer
+
+The visualiser takes 2 params:
+
+* terminal_width = default 100
+* color_mode_on = default True
 
 ```
 from pyev import Visualizer
@@ -15,6 +18,7 @@ for explain in parsed_json:
     v.load(explain)
     v.print()
 ```
+
 to read json from a file use
 ```
 from pyev import Visualizer
