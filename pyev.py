@@ -1,6 +1,6 @@
-import humanize
 import textwrap
-from colors import color
+import re
+from click import style as color
 
 DESCRIPTIONS = {
     "Append": "Used in a UNION to merge multiple record sets by appending them together.",
@@ -19,6 +19,8 @@ DESCRIPTIONS = {
     "Bitmap Heap Scan": "Searches through the pages returned by the Bitmap Index Scan for relevant rows.",
     "Bitmap Index Scan": "Uses a Bitmap Index (index which uses 1 bit per page) to find all relevant pages. Results of this node are fed to the Bitmap Heap Scan.",
     "CTEScan": "Performs a sequential scan of Common Table Expression (CTE) query results. Note that results of a CTE are materialized (calculated and temporarily stored).",
+    "ProjectSet": "ProjectSet appears when the SELECT or ORDER BY clause of the query.  They basically just execute the set-returning function(s) for each tuple until none of the functions return any more records.",
+    "Result": "Returns result",
 }
 
 
@@ -51,7 +53,7 @@ class Visualizer:
 
     def prefix_format(self, v):
         if self.color:
-            return color(v, fg="grey")
+            return color(v, fg="bright_black")
         return v
 
     def tag_format(self, v):
@@ -61,7 +63,7 @@ class Visualizer:
 
     def muted_format(self, v):
         if self.color:
-            return color(v, fg="grey")
+            return color(v, fg="bright_black")
         return v
 
     def bold_format(self, v):
@@ -223,31 +225,48 @@ class Visualizer:
             return [line]
         return textwrap.wrap(line, width)
 
+    def intcomma(self, value):
+        sep = ","
+        if not isinstance(value, str):
+            value = int(value)
+
+        orig = str(value)
+
+        new = re.sub(r"^(-?\d+)(\d{3})", fr"\g<1>{sep}\g<2>", orig)
+        if orig == new:
+            return new
+        else:
+            return self.intcomma(new)
+
+    def output_fn(self, current_prefix, string):
+        return "%s%s" % (self.prefix_format(current_prefix), string)
+
     def create_lines(self, plan, prefix, depth, width, last_child):
+        is_last = len(plan.get("Plans", [])) < 1 or last_child
+
         current_prefix = prefix
-
-        def output_fn(string):
-            return "%s%s" % (self.prefix_format(current_prefix), string)
-
-        self.string_lines.append(output_fn(self.prefix_format("│")))
+        self.string_lines.append(
+            self.output_fn(current_prefix, self.prefix_format("│"))
+        )
 
         joint = "├"
-        if len(plan.get("Plans", [])) > 1 or last_child:
+        if is_last:
             joint = "└"
         #
         self.string_lines.append(
-            output_fn(
+            self.output_fn(
+                current_prefix,
                 "%s %s%s %s"
                 % (
                     self.prefix_format(joint + "─⌠"),
                     self.bold_format(plan["Node Type"]),
                     self.format_details(plan),
                     self.format_tags(plan),
-                )
+                ),
             )
         )
         #
-        if len(plan.get("Plans", [])) > 1 or last_child:
+        if is_last:
             prefix += "  "
         else:
             prefix += "│ "
@@ -260,100 +279,121 @@ class Visualizer:
             DESCRIPTIONS.get(plan["Node Type"], "Not found : %s" % plan["Node Type"]),
             cols,
         ):
-            self.string_lines.append(output_fn("%s" % self.muted_format(line)))
+            self.string_lines.append(
+                self.output_fn(current_prefix, "%s" % self.muted_format(line))
+            )
         #
         if plan.get("Actual Duration"):
             self.string_lines.append(
-                output_fn(
+                self.output_fn(
+                    current_prefix,
                     "○ %s %s (%.0f%%)"
                     % (
                         "Duration:",
                         self.duration_to_string(plan["Actual Duration"]),
                         (plan["Actual Duration"] / self.explain["Execution Time"])
                         * 100,
-                    )
+                    ),
                 )
             )
 
         self.string_lines.append(
-            output_fn(
+            self.output_fn(
+                current_prefix,
                 "○ %s %s (%.0f%%)"
                 % (
                     "Cost:",
-                    humanize.intcomma(int(plan["Actual Cost"])),
+                    self.intcomma(plan["Actual Cost"]),
                     (plan["Actual Cost"] / self.explain["Total Cost"]) * 100,
-                )
+                ),
             )
         )
 
         self.string_lines.append(
-            output_fn("○ %s %s" % ("Rows:", humanize.intcomma(plan["Actual Rows"])))
+            self.output_fn(
+                current_prefix,
+                "○ %s %s" % ("Rows:", self.intcomma(plan["Actual Rows"])),
+            )
         )
 
         current_prefix = current_prefix + "  "
 
         if plan.get("Join Type"):
             self.string_lines.append(
-                output_fn("%s %s" % (plan["Join Type"], self.muted_format("join")))
+                self.output_fn(
+                    current_prefix,
+                    "%s %s" % (plan["Join Type"], self.muted_format("join")),
+                )
             )
 
         if plan.get("Relation Name"):
             self.string_lines.append(
-                output_fn(
+                self.output_fn(
+                    current_prefix,
                     "%s %s.%s"
                     % (
                         self.muted_format("on"),
                         plan.get("Schema", "unknown"),
                         plan["Relation Name"],
-                    )
+                    ),
                 )
             )
 
         if plan.get("Index Name"):
             self.string_lines.append(
-                output_fn("%s %s" % (self.muted_format("using"), plan["Index Name"]))
+                self.output_fn(
+                    current_prefix,
+                    "%s %s" % (self.muted_format("using"), plan["Index Name"]),
+                )
             )
 
         if plan.get("Index Condition"):
             self.string_lines.append(
-                output_fn(
-                    "%s %s" % (self.muted_format("condition"), plan["Index Condition"])
+                self.output_fn(
+                    current_prefix,
+                    "%s %s" % (self.muted_format("condition"), plan["Index Condition"]),
                 )
             )
 
         if plan.get("Filter"):
             self.string_lines.append(
-                output_fn(
+                self.output_fn(
+                    current_prefix,
                     "%s %s %s"
                     % (
                         self.muted_format("filter"),
                         plan["Filter"],
                         self.muted_format(
-                            "[-%s rows]"
-                            % humanize.intcomma(plan["Rows Removed by Filter"])
+                            "[-%s rows]" % self.intcomma(plan["Rows Removed by Filter"])
                         ),
-                    )
+                    ),
                 )
             )
 
         if plan.get("Hash Condition"):
             self.string_lines.append(
-                output_fn("%s %s" % (self.muted_format("on"), plan["Hash Condition"]))
+                self.output_fn(
+                    current_prefix,
+                    "%s %s" % (self.muted_format("on"), plan["Hash Condition"]),
+                )
             )
 
         if plan.get("CTE Name"):
-            self.string_lines.append(output_fn("CTE %s" % plan["CTE Name"]))
+            self.string_lines.append(
+                self.output_fn(current_prefix, "CTE %s" % plan["CTE Name"])
+            )
 
         if plan.get("Planner Row Estimate Factor") != 0:
             self.string_lines.append(
-                output_fn(
+                self.output_fn(
+                    current_prefix,
                     "%s %sestimated %s %.2fx"
                     % (
                         self.muted_format("rows"),
                         plan["Planner Row Estimate Direction"],
                         self.muted_format("by"),
                         plan["Planner Row Estimate Factor"],
-                    )
+                    ),
                 )
             )
 
@@ -364,20 +404,21 @@ class Visualizer:
                 self.wrap_string(" + ".join(plan["Output"]), cols)
             ):
                 self.string_lines.append(
-                    output_fn(
+                    self.output_fn(
+                        current_prefix,
                         self.prefix_format(self.get_terminator(index, plan))
-                        + self.output_format(line)
+                        + self.output_format(line),
                     )
                 )
 
-        for nested_plan in plan.get("Plans", []):
+        for index, nested_plan in enumerate(plan.get("Plans", [])):
             self.create_lines(
                 nested_plan, prefix, depth + 1, width, index == len(plan["Plans"]) - 1
             )
 
     def generate_lines(self):
         self.string_lines = [
-            "○ Total Cost: %s" % humanize.intcomma(int(self.explain["Total Cost"])),
+            "○ Total Cost: %s" % self.intcomma(self.explain["Total Cost"]),
             "○ Planning Time: %s"
             % self.duration_to_string(self.explain["Planning Time"]),
             "○ Execution Time: %s"
@@ -391,6 +432,9 @@ class Visualizer:
             self.terminal_width,
             len(self.plan.get("Plans", [])) == 1,
         )
+
+    def get_list(self):
+        return "\n".join(self.string_lines)
 
     def print(self):
         for lin in self.string_lines:
